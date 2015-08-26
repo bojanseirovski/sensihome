@@ -11,4 +11,15 @@ section with a presentational option. These are separated in 2 LUA files : setup
 The sensor.lua will output data from a DHT-11 temperature + humidity sensor connected on 
 PIN 4(GPIO2) and controlls the state of the GPIO0 pin (3).
 
+Programming the ESP8266 
+-----------------------
+
+http://randomnerdtutorials.com/esp8266-web-server/
+
+
+Custom build NodeMCU firmware
+---------------------------------------
+http://frightanic.com/nodemcu-custom-build/
+
+
 
