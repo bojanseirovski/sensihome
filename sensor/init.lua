@@ -1,12 +1,12 @@
 dhtpin = 4;
 led2 = 3;
-state2 = "ON";
+state2 = "OFF";
 ssid="";
 passwd = "";
 postToURL = nil;
 interval=0;
 settings = {};
-local fileFound = file.open('settings','r');
+local fileFound = file.open('settings.conf','r');
 if(fileFound ~= nil) then
         local sett = file.readline();
         if(sett~=nil) then
@@ -20,11 +20,12 @@ if(fileFound ~= nil) then
             if(settings.url~=nil and string.find(settings.url,"http:"))then
                 postToURL = settings.url;
             end
-            dofile("sensor.lua");
+            dofile("temperature.lua");
             connect_wifi();
             runServer(); 
         end
-else
+end
+if(fileFound == nil) then
     dofile("setup.lua");
     runSetup();
 end

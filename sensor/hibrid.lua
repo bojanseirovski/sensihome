@@ -4,6 +4,7 @@ thisId=node.chipid();
 gpio.mode(led2, gpio.OUTPUT);
 gpio.write(led2, gpio.LOW);
 
+
 function connect_wifi()
    wifi.setmode(wifi.STATION);
    wifi.sta.config(ssid,passwd);
@@ -36,27 +37,43 @@ function runServer()
           conn:on("receive", function(client,request)
                theTime = tmr.time();
                local buf = "";
+               local header = "";
+               local footer = "";
                local blah , tempTemp, hum = dht.read(dhtpin);
-               if(string.find(request,"pin2\/ON")) then
-                    state2 = "OFF"; 
+               if(string.find(request,"pin\/ON")) then
+                    state2 = "ON"; 
+                    state2str = "OFF";
                     gpio.write(led2, gpio.HIGH);
                end
-               if(string.find(request,"pin2\/OFF")) then
-                    state2 = "ON";
+               if(string.find(request,"pin\/OFF")) then
+                    state2 = "OFF";
+                    state2str = "ON";
                     gpio.write(led2, gpio.LOW);
                end
                if(string.find(request,"node\/RESET")) then
-                file.remove("settings");
+                file.remove("settings.conf");
                 node.restart();
                end
                if(not string.find(request,"reqtype\/json")) then
-                    buf = buf.."<html><body>";
+                    header = "<html><body>";
+                    footer = "</body></html>";
+                    if(file.open("head.html")) then
+                        header = file.read();
+                        file.close();
+                    end
+                    
+                    buf = buf..header;
                     buf = buf.."<h2> Remote switch with temperature sensor - SensiHome :</h2>";
                     buf = buf.."<hr/>";
                     buf = buf.."<p>Temperature : "..tempTemp.." &deg; C</p>";
                     buf = buf.."<p>Humidity : "..hum.." % </p>";
-                    buf = buf.."<p>Switch : Turn it <a href=\"\/id\/"..thisId.."\/pin2\/"..state2.."\">"..state2.."</a></p>";
-                    buf = buf.."</body></html>";
+                    buf = buf.."<p>Device switch : <a href=\"\/id\/"..thisId.."\/pin\/"..opositeState(state2).."\">"..state2.."</a></p>";
+                    buf = buf.."<p> <a href=\"\/id\/"..thisId.."\" >Initial state</a></p>";                    
+                    if(file.open("foot.html")) then
+                        footer = file.read();
+                        file.close();
+                    end
+                    buf = buf..footer;
                end
                if(string.find(request,"reqtype\/json")) then 
                     buf = {temperature=tempTemp, humidity=hum , pin2=opositeState(state2), id=thisId,status="OK" };

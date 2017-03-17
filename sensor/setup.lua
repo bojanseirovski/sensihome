@@ -8,6 +8,7 @@ function unescape (s)
           end)
       return s;
 end
+
 function decode (s)
       for name, value in string.gfind(s, "([^&=]+)=([^&=]+)") do
         name = unescape(name);
@@ -34,6 +35,8 @@ function runSetup()
           conn:on("receive", function(client,request)
                local pass = "123456789";
                local ssid = "sensi"..thisId ;
+               local header = "";
+               local footer = "";
                local pingUrl = "";
                local pingInterval = 360;
                if(string.find(request,"POST"))then
@@ -52,9 +55,14 @@ function runSetup()
                end
                
                end
-             
+               header = "<html><body>";
+               footer = "</body></html>";
+               if(file.open("head.html")) then
+                   header = file.read();
+                   file.close();
+               end
                local buf = "";
-               buf = buf.."<html><body>";
+               buf = buf..header;
                buf = buf.."<h2> SensiHome node - Setup :"..thisId.."</h2>";
                buf = buf.."<h2> "..ipAddr.."</h2>";
                buf = buf.."<hr>";
@@ -62,16 +70,19 @@ function runSetup()
                buf = buf.."<input type=\"hidden\" name=\"id\" value=\""..thisId.."\">";
                buf = buf.."<p>SSID :<input type=\"text\" name=\"ssid\" value=\""..ssid.."\"></p>";
                buf = buf.."<p>Password : <input type=\"text\" name=\"passwd\" value=\""..pass.."\"></p>";
-               buf = buf.."<p>POST to URL:<input type=\"text\" name=\"url\" value=\""..pingUrl.."\"></p>";
-               buf = buf.."<p>POST interval:<input type=\"text\" name=\"interval\" value=\""..pingInterval.."\"></p>";
                buf = buf.."<input type=\"submit\" name=\"saveit\" value=\"Go\">";
                buf = buf.."</form>";
-               buf = buf.."</body></html>";
+               if(file.open("foot.html")) then
+                   footer = file.read();
+                   file.close();
+               end
+                buf = buf..footer;
+               
                client:send(buf);
                client:close();
                
                if(string.find(request,"POST")) then
-                    file.open("settings", "w+");
+                    file.open("settings.conf", "w+");
                     local savetable = {id=thisId,ssid=ssid,pass=pass,url=pingUrl,interval=pingInterval};
                     local toSave = cjson.encode(savetable);
                     file.write(toSave);
